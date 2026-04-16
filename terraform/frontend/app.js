@@ -40,7 +40,7 @@ async function pay(service) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      cardId: "001fbd3f-2091-4e48-9f78-9c0010c44d8d", // tu card
+      cardId: "17a8b860-3a02-4f82-aa93-2acbba77d707", // tu card
       service
     })
   });
