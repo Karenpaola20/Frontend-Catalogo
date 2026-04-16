@@ -7,7 +7,10 @@ async function loadCatalog() {
   const container = document.getElementById("catalog");
   container.innerHTML = "";
 
-  data.forEach(service => {
+  // ✅ FILTRAR SOLO ACTIVOS
+  const activeServices = data.filter(s => s.estado === "Activo");
+
+  activeServices.forEach(service => {
     const div = document.createElement("div");
     div.className = "card";
 
@@ -15,7 +18,12 @@ async function loadCatalog() {
       <h3>${service.servicio}</h3>
       <p><strong>Plan:</strong> ${service.plan}</p>
       <p><strong>Proveedor:</strong> ${service.proveedor}</p>
-      <p>Precio: $${service.precio_mensual}</p>
+      <p><strong>Categoría:</strong> ${service.categoria}</p>
+      <p><strong>Detalles:</strong> ${service.detalles}</p>
+      <p><strong>Precio:</strong> $${service.precio_mensual}</p>
+
+      <span class="badge active">${service.estado}</span>
+
       <button onclick='pay(${JSON.stringify(service)})'>Pagar</button>
     `;
 
@@ -24,7 +32,6 @@ async function loadCatalog() {
 }
 
 loadCatalog();
-
 
 async function pay(service) {
   const res = await fetch(`${API}/payment`, {
@@ -52,9 +59,18 @@ function pollStatus(traceId) {
     const res = await fetch(`${API}/payment/${traceId}`);
     const data = await res.json();
 
-    document.getElementById("status").innerText = data.status;
+    document.getElementById("status").innerHTML = `
+      Estado: <strong>${data.status}</strong>
+      ${data.error ? `<br><span style="color:red;">${data.error}</span>` : ""}
+    `;
+    
+    if (data.status === "FINISH") {
+      showToast("Pago realizado con éxito", "success");
+      clearInterval(interval);
+    }
 
-    if (data.status === "FINISH" || data.status === "FAILED") {
+    if (data.status === "FAILED") {
+      showToast(data.error || "Pago fallido", "error");
       clearInterval(interval);
     }
 
@@ -91,4 +107,15 @@ async function uploadCSV() {
   };
 
   reader.readAsDataURL(file);
+}
+
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+
+  toast.innerText = message;
+  toast.className = `toast show ${type}`;
+
+  setTimeout(() => {
+    toast.className = "toast hidden";
+  }, 3000);
 }
